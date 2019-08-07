@@ -1,7 +1,9 @@
 package com.szilardmakai.simplenoteapp;
 
+import android.arch.paging.PagedList;
 import android.arch.paging.PagedListAdapter;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +34,29 @@ public class NoteListAdapter extends PagedListAdapter<Note, NoteListAdapter.Note
         if (currentNote != null) {
             noteViewHolder.bindTo(currentNote);
         }
+    }
+
+    @Override
+    public void submitList(PagedList<Note> pagedList) {
+        super.submitList(pagedList);
+        System.out.println("Yup, it happened, page submitted");
+        if (getCurrentList() != null) {
+            for (Note note : getCurrentList()) {
+                System.out.println(note.getContent());
+            }
+        }
+    }
+
+    @Override
+    public void onCurrentListChanged(@Nullable PagedList<Note> currentList) {
+        super.onCurrentListChanged(currentList);
+        System.out.println("Page changed?");
+    }
+
+    @Nullable
+    @Override
+    public PagedList<Note> getCurrentList() {
+        return super.getCurrentList();
     }
 
     Note getNoteAtPosition(int position) {

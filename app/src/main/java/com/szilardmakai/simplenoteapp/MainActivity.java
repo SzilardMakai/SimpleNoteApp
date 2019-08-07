@@ -1,6 +1,5 @@
 package com.szilardmakai.simplenoteapp;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.arch.paging.PagedList;
 import android.content.Intent;
@@ -20,6 +19,11 @@ import com.szilardmakai.simplenoteapp.database.Note;
 
 import java.util.Calendar;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final int NEW_NOTE_ACTIVITY_REQUEST_CODE = 1;
@@ -30,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_NOTE_CREATION_DATE = "extra_note_creation_date";
 
     private NoteViewModel mNoteViewModel;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private NoteListAdapter adapter = new NoteListAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,16 +49,15 @@ public class MainActivity extends AppCompatActivity {
         mNoteViewModel = ViewModelProviders.of(this).get(NoteViewModel.class);
         mNoteViewModel.init(getApplication());
 
-        final NoteListAdapter adapter = new NoteListAdapter();
         mRecyclerView.setAdapter(adapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        mNoteViewModel.getNotes().observe(this, new Observer<PagedList<Note>>() {
-            @Override
-            public void onChanged(@Nullable PagedList<Note> notes) {
-                adapter.submitList(notes);
-            }
-        });
+//        mNoteViewModel.getNotes().observe(this, new Observer<PagedList<Note>>() {
+//            @Override
+//            public void onChanged(@Nullable PagedList<Note> notes) {
+//                adapter.submitList(notes);
+//            }
+//        });
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -86,9 +91,29 @@ public class MainActivity extends AppCompatActivity {
                 launchEditNoteActivity(note);
             }
         });
+
+
     }
 
-    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        compositeDisposable.add(mNoteViewModel.getNotes()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<PagedList<Note>>() {
+                    @Override
+                    public void accept(PagedList<Note> notes) {
+                        adapter.submitList(notes);
+                    }
+                }));
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        compositeDisposable.clear();
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

@@ -18,21 +18,20 @@ public class Note {
     @ColumnInfo(name = "content")
     private String mContent;
 
-    @NonNull
     @ColumnInfo(name = "creation_date")
     private long mCreationDate;
 
     @ColumnInfo(name = "modified_date")
     private long mModifyDate;
 
-    public Note(@NonNull String mContent, @NonNull long mCreationDate, long mModifyDate) {
+    public Note(@NonNull String mContent, long mCreationDate, long mModifyDate) {
         this.mContent = mContent;
         this.mCreationDate = mCreationDate;
         this.mModifyDate = mModifyDate;
     }
 
     @Ignore
-    public Note(int mId, @NonNull String mContent, @NonNull long mCreationDate, long mModifyDate) {
+    public Note(int mId, @NonNull String mContent, long mCreationDate, long mModifyDate) {
         this.mId = mId;
         this.mContent = mContent;
         this.mCreationDate = mCreationDate;
@@ -61,7 +60,6 @@ public class Note {
         return mContent;
     }
 
-    @NonNull
     public long getCreationDate() {
         return mCreationDate;
     }
@@ -84,5 +82,10 @@ public class Note {
 
     public void setModifyDate(long mModifyDate) {
         this.mModifyDate = mModifyDate;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
     }
 }

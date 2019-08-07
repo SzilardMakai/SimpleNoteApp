@@ -1,10 +1,14 @@
 package com.szilardmakai.simplenoteapp.database;
 
 import android.app.Application;
-import android.arch.lifecycle.LiveData;
-import android.arch.paging.LivePagedListBuilder;
 import android.arch.paging.PagedList;
-import android.os.AsyncTask;
+import android.arch.paging.RxPagedListBuilder;
+
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Action;
+import io.reactivex.schedulers.Schedulers;
 
 public class NoteRepository {
 
@@ -12,7 +16,7 @@ public class NoteRepository {
     private static final int INITIAL_LOAD = 40;
 
     private NoteDao mNoteDao;
-    private LiveData<PagedList<Note>> mAllNotes;
+    private Observable<PagedList<Note>> mAllNotes;
 
     public NoteRepository(Application application) {
         NoteRoomDatabase database = NoteRoomDatabase.getDatabase(application);
@@ -22,67 +26,46 @@ public class NoteRepository {
                 .setInitialLoadSizeHint(INITIAL_LOAD)
                 .setPageSize(PAGE_SIZE)
                 .build();
-        mAllNotes = new LivePagedListBuilder<>(mNoteDao.getAllNotes(), pagedListConfig).build();
+        mAllNotes = new RxPagedListBuilder<>(mNoteDao.getAllNotes(), pagedListConfig).buildObservable();
     }
 
-    public void addNote(Note note) {
-        new AddNoteAsyncTask(mNoteDao).execute(note);
+    public void addNote(final Note note) {
+        Completable.fromAction(new Action() {
+            @Override
+            public void run() {
+                mNoteDao.addNote(note);
+            }
+        })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe();
     }
 
-    public void updateNote(Note note) {
-        new UpdateNoteAsyncTask(mNoteDao).execute(note);
+    public void updateNote(final Note note) {
+        Completable.fromAction(new Action() {
+            @Override
+            public void run() {
+                mNoteDao.updateNote(note);
+            }
+        })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe();
     }
 
-    public void deleteNote(Note note) {
-        new DeleteNoteAsyncTask(mNoteDao).execute(note);
+    public void deleteNote(final Note note) {
+        Completable.fromAction(new Action() {
+            @Override
+            public void run() {
+                mNoteDao.deleteNote(note);
+            }
+        })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe();
     }
 
-    public LiveData<PagedList<Note>> getNotes() {
+    public Observable<PagedList<Note>> getNotes() {
         return mAllNotes;
-    }
-
-
-    private static class AddNoteAsyncTask extends AsyncTask<Note, Void, Void> {
-
-        private NoteDao asyncNoteDao;
-
-        AddNoteAsyncTask(NoteDao noteDao) {
-            asyncNoteDao = noteDao;
-        }
-
-        @Override
-        protected Void doInBackground(Note... notes) {
-            asyncNoteDao.addNote(notes[0]);
-            return null;
-        }
-    }
-
-    private static class UpdateNoteAsyncTask extends AsyncTask<Note, Void, Void> {
-
-        private NoteDao asyncDao;
-
-        UpdateNoteAsyncTask(NoteDao noteDao) {
-            this.asyncDao = noteDao;
-        }
-
-        @Override
-        protected Void doInBackground(Note... notes) {
-            asyncDao.updateNote(notes[0]);
-            return null;
-        }
-    }
-
-    private static class DeleteNoteAsyncTask extends AsyncTask<Note, Void, Void> {
-
-        private NoteDao asyncDao;
-
-        DeleteNoteAsyncTask(NoteDao noteDao) {
-            this.asyncDao = noteDao;
-        }
-        @Override
-        protected Void doInBackground(Note... notes) {
-            asyncDao.deleteNote(notes[0]);
-            return null;
-        }
     }
 }

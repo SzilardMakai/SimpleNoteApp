@@ -1,17 +1,18 @@
 package com.szilardmakai.simplenoteapp;
 
 import android.app.Application;
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 import android.arch.paging.PagedList;
 
 import com.szilardmakai.simplenoteapp.database.Note;
 import com.szilardmakai.simplenoteapp.database.NoteRepository;
 
+import io.reactivex.Observable;
+
 public class NoteViewModel extends ViewModel {
 
     private NoteRepository mNoteRepository;
-    private LiveData<PagedList<Note>> mAllNotes;
+    private Observable<PagedList<Note>> mAllNotes;
 
     public NoteViewModel() {
     }
@@ -21,7 +22,7 @@ public class NoteViewModel extends ViewModel {
         mAllNotes = mNoteRepository.getNotes();
     }
 
-    LiveData<PagedList<Note>> getNotes() {
+    Observable<PagedList<Note>> getNotes() {
         return mAllNotes;
     }
 
