@@ -1,5 +1,5 @@
 # SimpleNoteApp
 Android application to save notes.
-The use can add/edit/delete items
+The user can add/edit/delete items
 
-Uses: Room Persistence Library and Paging Library
+Uses: Room Persistence Library with Paging Library and RxJava
